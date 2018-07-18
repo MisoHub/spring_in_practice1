@@ -17,6 +17,7 @@ public class TobisSpring1Application {
 //		ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
 //		UserDao dao = context.getBean("userDao",UserDao.class);
 		
+		// 1.7.3 의존관계 검색(Dependency Lookup)
 		ApplicationContext context = new AnnotationConfigApplicationContext(CountingDaoFactory.class);
 		UserDao dao = context.getBean("userDao",UserDao.class);
 

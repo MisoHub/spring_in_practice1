@@ -8,14 +8,17 @@ public class DaoFactory {
 
 	@Bean
 	public UserDao userDao() {
-		return new UserDao(connectionMaker());
+		//1.7.5 메소드를 이용한 의존관계주입 
+		UserDao userDao = new UserDao();
+		userDao.setUserDaoConnectionMaker(connectionMaker());
+		return userDao;
 	}
 
 	@Bean
 	public AdminDao adminDao() {
 		return new AdminDao(connectionMaker());
 	}
-	
+
 	@Bean
 	public ConnectionMaker connectionMaker() {
 		return new DConnectionMaker();

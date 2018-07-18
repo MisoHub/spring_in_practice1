@@ -3,6 +3,7 @@ package springbook.user.dao;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+// 1.7.4 DI응용 : 부가기능 추가 - 생성된 dao의 count를 기록하고 return함.  
 public class CountingConnectionMaker implements ConnectionMaker {
 
 	private int counter = 0;
