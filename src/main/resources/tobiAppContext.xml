@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- XML을 정의하는 방식에 DTD와 스키마 방식이 존재한다. 아래는 스키마 방식. -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+<!-- srping에서 제공하는 DataSource를 정의한다 -->
+	<bean id="myDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+	<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+	<property name="url" value="jdbc:mysql://localhost/spring"></property>
+	<property name="username" value="root"></property>
+	<property name="password" value="!root123$"></property>
+	</bean>
+	
+	
+<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 빈id 이다. -->
+<!-- 위에서 정의한 Datasource를 member instance로 사용한다. -->
+	<bean id="userDao" class="springbook.user.dao.UserDao">
+		<property name="dataSource" ref="myDataSource"></property>
+	</bean>
+
+
+</beans>
