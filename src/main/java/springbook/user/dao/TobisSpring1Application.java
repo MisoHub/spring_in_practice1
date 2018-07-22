@@ -24,10 +24,7 @@ public class TobisSpring1Application {
 		ApplicationContext context = new GenericXmlApplicationContext("tobiAppContext.xml");
 		UserDao dao = context.getBean("userDao",UserDao.class);
 
-		User user = new User();
-		user.setId("whiteship");
-		user.setName("가나다");
-		user.setPassword("pw1234");
+		User user = new User("whiteship","가나다","pw1234");
 		
 		dao.add(user);
 		System.out.println(user.getId() + "등록 성공");
