@@ -44,58 +44,134 @@ public class UserDao {
 	public User get(String id) throws ClassNotFoundException, SQLException {
 
 		// Connection c = this.userDaoConnectionMaker.makeConnection();
-		Connection c = this.dataSource.getConnection();
-		PreparedStatement ps = c.prepareStatement("select * from users where id=?");
-		ps.setString(1, id);
 
-		ResultSet rs = ps.executeQuery();
+		Connection c = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		User user = null;
+		// try ~ catch 구문으로 예외처리를 한다.
+		try {
+			c = this.dataSource.getConnection();
+			ps = c.prepareStatement("select * from users where id=?");
+			ps.setString(1, id);
 
-		User user=null;
-	
-		if(rs.next()) {
-			user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+			rs = ps.executeQuery();
+			user = null;
+
+			if (rs.next()) {
+				user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+			}
+
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+
+			if (rs != null) {
+				// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					throw e;
+				}
+			}
 		}
-		
-		rs.close();
-		ps.close();
-		c.close();
-		
-		// 예외테스트 적용 (TDD) 
-		if(user == null)
+		if (c != null) {
+			try {
+				c.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+		// 예외테스트 적용 (TDD)
+		if (user == null)
 			throw new EmptyResultDataAccessException(1);
-		
+
 		return user;
 	}
 
-	public void deleteAll() throws ClassNotFoundException, SQLException {
+	public void deleteAll() throws SQLException {
 
-		Connection c = this.dataSource.getConnection();
-		PreparedStatement ps = c.prepareStatement("delete from users");
-		
-		ps.executeUpdate();
-		
-		ps.close();
-		c.close();
+		Connection c = null;
+		PreparedStatement ps = null;
+
+		try {
+			c = this.dataSource.getConnection();
+			ps = c.prepareStatement("delete from users");
+
+			ps.executeUpdate();
+
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+
+			if (ps != null) {
+				try {
+					// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
+					ps.close();
+				} catch (SQLException e) {
+					throw e;
+				} finally {
+					ps.close();
+				}
+			}
+			if (c != null) {
+				try {
+					c.close();
+				} catch (SQLException e) {
+					throw e;
+				} finally {
+					c.close();
+				}
+			}
+
+		}
 
 	}
 
 	public int getCount() throws ClassNotFoundException, SQLException {
 
-		Connection c = this.dataSource.getConnection();
-		PreparedStatement ps = c.prepareStatement("select count(*) from users");
+		Connection c = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		int count;
+		try {
 
-		ResultSet rs = ps.executeQuery();
-		
-		rs.next();
+			c = this.dataSource.getConnection();
+			ps = c.prepareStatement("select count(*) from users");
+			rs = ps.executeQuery();
+			rs.next();
+			count = rs.getInt(1);
+		} catch (SQLException e) {
+			throw e;
+		} finally {
 
-		int count = rs.getInt(1);
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					throw e;
+				}
 
-		rs.close();
-		ps.close();
-		c.close();
+			}
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException e) {
+					throw e;
+				}
+
+			}
+			if (c != null) {
+				try {
+					c.close();
+				} catch (SQLException e) {
+					throw e;
+					// 예외처리 마지막... 반복적인 예외처리에 많은 effort가 든다... 
+				}
+			}
+		}
 
 		return count;
 	}
-	
-	
 }
