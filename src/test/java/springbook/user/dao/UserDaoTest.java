@@ -6,26 +6,35 @@ import java.sql.SQLException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import org.springframework.dao.EmptyResultDataAccessException;
-
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations="/tobiAppContext.xml")
 public class UserDaoTest {
 
+	// 테스트 오브젝트가 만들어지고 나면 스프링 테스트 컨텍스트에 의해 자동으로 값이 주입된다. 
+	@Autowired
+	private ApplicationContext context=null;
+	
+	@Autowired
 	private UserDao dao = null;
 	private User[] users = null;
 
 	@Before
 	public void setup() {
-		ApplicationContext context = new ClassPathXmlApplicationContext("tobiAppContext.xml");
-		this.dao = context.getBean("userDao", UserDao.class);
+		// setup에서 객체를 생성하면 매 테스트 마다 실행되어 여러개의 context가 생성된다. 
+//		ApplicationContext context = new ClassPathXmlApplicationContext("tobiAppContext.xml");
+//		this.dao = this.context.getBean("userDao", UserDao.class);
 		
 		users = new User[] { new User("gregory", "그레고리", "password"), new User("desmond", "데스몬드", "password"),
 				new User("jessy", "제시", "password"), new User("artpaper", "아트페퍼", "password") };
-
 	}
 
 	@Test
