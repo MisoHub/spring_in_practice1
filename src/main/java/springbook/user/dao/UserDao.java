@@ -10,6 +10,11 @@ import javax.sql.DataSource;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import springbook.user.statement.AddStatement;
+import springbook.user.statement.DeleteAllStatement;
+import springbook.user.statement.GetStatement;
+import springbook.user.statement.StatementStrategy;
+
 public class UserDao {
 
 	// private ConnectionMaker userDaoConnectionMaker = null;
@@ -19,114 +24,51 @@ public class UserDao {
 		this.dataSource = dataSource;
 	}
 
-	// //1.7.5 메소드를 이용한 의존관계주입
-	// public void setUserDaoConnectionMaker(ConnectionMaker cm) {
-	// this.userDaoConnectionMaker = cm;
-	// }
+	// inner class 에서 변수를 사용할 수 있도록 final로 전달 
+	public void add(final User user) throws SQLException, ClassNotFoundException {
 
-	public void add(User user) throws SQLException, ClassNotFoundException {
+		// 익명클래스로 선언하여 코드 효율화를 시킴
+		StatementStrategy st = new StatementStrategy() {
+			@Override
+			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+				// TODO Auto-generated method stub
 
-		// Connection c = this.userDaoConnectionMaker.makeConnection();
-		Connection c = this.dataSource.getConnection();
+				PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?,?,?)");
+				ps.setString(1, user.getId());
+				ps.setString(2, user.getName());
+				ps.setString(3, user.getPassword());
 
-		PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?,?,?)");
-		ps.setString(1, user.getId());
-		ps.setString(2, user.getName());
-		ps.setString(3, user.getPassword());
-
-		ps.executeUpdate();
-
-		ps.close();
-		c.close();
+				return ps;
+			}
+		};
+		jdbcContextWithStatementStrategy(st);
 
 	}
 
 	public User get(String id) throws ClassNotFoundException, SQLException {
 
 		// Connection c = this.userDaoConnectionMaker.makeConnection();
+		
+		
+		StatementStrategy st = new GetStatement(id);
+		jdbcContextWithStatementStrategy(st);
+		
+		// 위 방법을 사용해서는 user 를 return 받기 어렵다. 
+		return null;
 
-		Connection c = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		User user = null;
-		// try ~ catch 구문으로 예외처리를 한다.
-		try {
-			c = this.dataSource.getConnection();
-			ps = c.prepareStatement("select * from users where id=?");
-			ps.setString(1, id);
-
-			rs = ps.executeQuery();
-			user = null;
-
-			if (rs.next()) {
-				user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
-			}
-
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-
-			if (rs != null) {
-				// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					throw e;
-				}
-			}
-		}
-		if (c != null) {
-			try {
-				c.close();
-			} catch (SQLException e) {
-				throw e;
-			}
-		}
-
-		// 예외테스트 적용 (TDD)
-		if (user == null)
-			throw new EmptyResultDataAccessException(1);
-
-		return user;
 	}
 
 	public void deleteAll() throws SQLException {
 
-		Connection c = null;
-		PreparedStatement ps = null;
-
-		try {
-			c = this.dataSource.getConnection();
-			ps = c.prepareStatement("delete from users");
-
-			ps.executeUpdate();
-
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-
-			if (ps != null) {
-				try {
-					// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
-					ps.close();
-				} catch (SQLException e) {
-					throw e;
-				} finally {
-					ps.close();
-				}
+		StatementStrategy st = new StatementStrategy() {
+			@Override
+			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+				// TODO Auto-generated method stub
+				PreparedStatement ps = c.prepareStatement("delete from users");
+				return ps;
 			}
-			if (c != null) {
-				try {
-					c.close();
-				} catch (SQLException e) {
-					throw e;
-				} finally {
-					c.close();
-				}
-			}
-
-		}
-
+		};
+		jdbcContextWithStatementStrategy(st);
 	}
 
 	public int getCount() throws ClassNotFoundException, SQLException {
@@ -167,11 +109,40 @@ public class UserDao {
 					c.close();
 				} catch (SQLException e) {
 					throw e;
-					// 예외처리 마지막... 반복적인 예외처리에 많은 effort가 든다... 
+					// 예외처리 마지막... 반복적인 예외처리에 많은 effort가 든다...
 				}
 			}
 		}
 
 		return count;
+	}
+
+	public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
+
+		Connection c = null;
+		PreparedStatement ps = null;
+
+		try {
+			c = dataSource.getConnection();
+			ps = stmt.makePreparedStatement(c);
+			ps.executeQuery();
+
+		} catch (SQLException e) {
+			throw e;
+
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException e) {
+				}
+			}
+			if (c != null) {
+				try {
+					c.close();
+				} catch (SQLException e) {
+				}
+			}
+		}
 	}
 }

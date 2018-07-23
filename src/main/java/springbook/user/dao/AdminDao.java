@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import springbook.user.connection.ConnectionMaker;
+
 public class AdminDao {
 
 	private ConnectionMaker connectionMaker = null;
