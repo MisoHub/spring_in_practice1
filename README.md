@@ -28,9 +28,7 @@
     > Static Class
   
     > Inner Class 
-        > 멤버 내부 클래스 member inner class
-        > 로컬 내부 클래스 local inner class
-        > 익명 내부 클래스 anonymous inner class
+        멤버 내부 클래스 member inner class  /  로컬 내부 클래스 local inner class /  익명 내부 클래스 anonymous inner class
       
   이 branch 에 작성된 소스코드는 익명 내부 클래스로 작성이 되었다. 
   작성된 코드의 한계점은 전략 패턴으로 수행된 결과가 서로다른 return 타입을 가지고 있다고 한다면 별도의 상속관계를 갖어야 한다는 것이다. 
