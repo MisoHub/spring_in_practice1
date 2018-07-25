@@ -10,6 +10,7 @@ import javax.sql.DataSource;
 
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import springbook.user.connection.JdbcContext;
 import springbook.user.statement.AddStatement;
 import springbook.user.statement.DeleteAllStatement;
 import springbook.user.statement.GetStatement;
@@ -18,17 +19,23 @@ import springbook.user.statement.StatementStrategy;
 public class UserDao {
 
 	// private ConnectionMaker userDaoConnectionMaker = null;
+
+	private JdbcContext jdbcContext;
 	private DataSource dataSource;
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
-	// inner class 에서 변수를 사용할 수 있도록 final로 전달 
+	public void setJdbcContext(JdbcContext jdbcContext) {
+		this.jdbcContext = jdbcContext;
+	}
+
+	// inner class 에서 변수를 사용할 수 있도록 final로 전달
 	public void add(final User user) throws SQLException, ClassNotFoundException {
 
 		// 익명클래스로 선언하여 코드 효율화를 시킴
-		StatementStrategy st = new StatementStrategy() {
+		this.jdbcContext.workWithStatementStrategy(new StatementStrategy() {
 			@Override
 			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
 				// TODO Auto-generated method stub
@@ -40,39 +47,73 @@ public class UserDao {
 
 				return ps;
 			}
-		};
-		jdbcContextWithStatementStrategy(st);
+		});
 
 	}
 
 	public User get(String id) throws ClassNotFoundException, SQLException {
 
-		// Connection c = this.userDaoConnectionMaker.makeConnection();
-		
-		
-		StatementStrategy st = new GetStatement(id);
-		jdbcContextWithStatementStrategy(st);
-		
-		// 위 방법을 사용해서는 user 를 return 받기 어렵다. 
-		return null;
+//20180722 원복함 
+// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
+		Connection c = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		User user = null;
+		// try ~ catch 구문으로 예외처리를 한다.
+		try {
+			c = this.dataSource.getConnection();
+			ps = c.prepareStatement("select * from users where id=?");
+			ps.setString(1, id);
 
+			rs = ps.executeQuery();
+			user = null;
+
+			if (rs.next()) {
+				user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+			}
+
+		} catch (SQLException e) {
+			throw e;
+		} finally {
+
+			if (rs != null) {
+				// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					throw e;
+				}
+			}
+		}
+		if (c != null) {
+			try {
+				c.close();
+			} catch (SQLException e) {
+				throw e;
+			}
+		}
+
+		// 예외테스트 적용 (TDD)
+		if (user == null)
+			throw new EmptyResultDataAccessException(1);
+
+		return user;
 	}
 
 	public void deleteAll() throws SQLException {
 
-		StatementStrategy st = new StatementStrategy() {
+		this.jdbcContext.workWithStatementStrategy(new StatementStrategy() {
 			@Override
 			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
 				// TODO Auto-generated method stub
 				PreparedStatement ps = c.prepareStatement("delete from users");
 				return ps;
 			}
-		};
-		jdbcContextWithStatementStrategy(st);
+		});
 	}
 
 	public int getCount() throws ClassNotFoundException, SQLException {
-
+// 메소드 추출 하지 못함. return 값을 받아야 하는 경우. 
 		Connection c = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -117,32 +158,4 @@ public class UserDao {
 		return count;
 	}
 
-	public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
-
-		Connection c = null;
-		PreparedStatement ps = null;
-
-		try {
-			c = dataSource.getConnection();
-			ps = stmt.makePreparedStatement(c);
-			ps.executeQuery();
-
-		} catch (SQLException e) {
-			throw e;
-
-		} finally {
-			if (ps != null) {
-				try {
-					ps.close();
-				} catch (SQLException e) {
-				}
-			}
-			if (c != null) {
-				try {
-					c.close();
-				} catch (SQLException e) {
-				}
-			}
-		}
-	}
 }
