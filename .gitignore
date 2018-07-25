@@ -1,5 +1,7 @@
 /target/
 !.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.gitignore
 
 ### STS ###
 .apt_generated
@@ -22,4 +24,4 @@
 /nbbuild/
 /dist/
 /nbdist/
-/.nb-gradle/
+/.nb-gradle/asdf
