@@ -8,7 +8,8 @@ JDBC의 일반적인 작업 흐름을 담고 있는 jdbcContextWithStatementStra
 그 안에서 DataSource 인스턴스를 DI 받을 수 있도록 수정자setter를 설정한다. 그리고 DataSource로 받는 connection을 이용해 
 PreparedStatement를 수행 후 각 인스턴스들을 close 시켜 리소스를 종료하게 된다.  
 
-- 스프링 빈 DI 
+- 스프링 빈 DI
+
  UserDao에서 JdbcContext를 DI받아 사용하기 위해서는 빈Bean 의존관계를 생성해야 한다. 만약 UserDao에서 JdbcContext를 주입 받지 않고 
 직접 생성하여 사용하더라도 JdbcContext에서 DataSource를 DI받아 사용하기 때문에 빈 의존관계를 생성해야 한다. 
 여기서 문제가 될 수 있는 것은 JdbcContext가 인터페이스interface가 아닌 구체클래스concrete class 라는 것이다. 
@@ -31,6 +32,7 @@ DI의 개념을 충실히 따르면 인터페이스를 둬서 코드에서 클�
 
 
 - 수동 DI 적용 
+
  JdbcContext 스프링 빈으로 등록해서 UserDao 에 DI 하는 대신 UserDao 내부에서 직접 DI를 적용하는 방법도 있다. 
 이렇게 한다면 JdbcContext가 싱글톤으로 생성되지 않는데, 조금 느슨하게 DAO 마다 하나의 JdbcContext 오브젝트를 갖고 있게 한다고 해도 
 DAO가 수백개가 되어 JdbcContext가 수백개 만들어져도 메모리 부담은 크지 않다. 
@@ -43,5 +45,6 @@ DAO가 수백개가 되어 JdbcContext가 수백개 만들어져도 메모리 �
 단점) DI의 근본 원칙에 부합하지 않는 구체적인 클래스와의 관계가 설정에 직접 노출됨
 
 - 결론
+
 때에 따라서 적절한 방식을 사용할 수 있어야 한다. 다만 왜 그렇게 선택했는지에 대한 분명한 이유와 근거가 필요하다. 
 분명하게 설명할 자신이 없다면 차라리 인터페이스를 만들어서 평범한 DI 구조로 만드는게 나을 수도 있다. 
