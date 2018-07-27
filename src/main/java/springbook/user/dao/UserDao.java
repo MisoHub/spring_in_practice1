@@ -53,8 +53,8 @@ public class UserDao {
 
 	public User get(String id) throws ClassNotFoundException, SQLException {
 
-//20180722 원복함 
-// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
+		// 20180722 원복함
+		// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
 		Connection c = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -102,18 +102,11 @@ public class UserDao {
 
 	public void deleteAll() throws SQLException {
 
-		this.jdbcContext.workWithStatementStrategy(new StatementStrategy() {
-			@Override
-			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-				// TODO Auto-generated method stub
-				PreparedStatement ps = c.prepareStatement("delete from users");
-				return ps;
-			}
-		});
+		this.jdbcContext.executeSQL("delete from users");
 	}
 
 	public int getCount() throws ClassNotFoundException, SQLException {
-// 메소드 추출 하지 못함. return 값을 받아야 하는 경우. 
+		// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
 		Connection c = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;

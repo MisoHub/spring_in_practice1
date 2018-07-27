@@ -17,7 +17,7 @@ public class JdbcContext {
 		this.dataSource = dataSource;
 	}
 
-	public ResultSet workWithStatementStrategy(StatementStrategy stmt) throws SQLException {
+	public void workWithStatementStrategy(StatementStrategy stmt) throws SQLException {
 		Connection c = null;
 		PreparedStatement ps = null;
 
@@ -26,7 +26,6 @@ public class JdbcContext {
 			ps = stmt.makePreparedStatement(c);
 
 			ps.executeUpdate();
-			return null;
 		} catch (SQLException e) {
 			throw e;
 		} finally {
@@ -44,5 +43,17 @@ public class JdbcContext {
 				}
 			}
 		}
+	}
+
+	public void executeSQL(String sql) throws SQLException {
+		this.workWithStatementStrategy(new StatementStrategy() {
+			@Override
+			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+				// TODO Auto-generated method stub
+				PreparedStatement ps = c.prepareStatement(sql);
+
+				return ps;
+			}
+		});
 	}
 }
