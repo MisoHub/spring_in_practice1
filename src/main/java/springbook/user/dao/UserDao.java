@@ -72,15 +72,7 @@ public class UserDao {
 		// Object[] { id },User.class);
 		// 위와 같이 설정하면 오류남. 결과로 3개의 필드값(String)이 return 되는데, 각각이 User 인스턴스에 대응하여 리턴됨.
 
-		return this.jdbcTemplate.queryForObject("select * from users where id=?", new Object[] { id },
-				new RowMapper<User>() {
-
-					@Override
-					public User mapRow(ResultSet rs, int rowNum) throws SQLException {
-						// TODO Auto-generated method stub
-						return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
-					}
-				});
+		return this.jdbcTemplate.queryForObject("select * from users where id=?", new Object[] { id }, this.userMapper);
 
 	}
 
@@ -129,13 +121,16 @@ public class UserDao {
 
 	// 그냥 jdbcTemplate.qeury 를 수행한다. (queryForObject 가 아님) 
 	public List<User> getAll() {
-		return this.jdbcTemplate.query("select * from users order by id", new RowMapper<User>() {
-			@Override
-			public User mapRow(ResultSet rs, int rowN) throws SQLException {
-				// TODO Auto-generated method stub
-				return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
-			}
-		});
+		return this.jdbcTemplate.query("select * from users order by id",this.userMapper);
 		// mapRow 에서 return 한 User는 List 형태로 jdbcTemplate에 의해서 return된다.
 	}
+	
+	private RowMapper<User> userMapper = 
+			new RowMapper<User>() {
+				@Override
+				public User mapRow(ResultSet rs, int arg1) throws SQLException {
+					// TODO Auto-generated method stub
+					return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+				}
+	};
 }
