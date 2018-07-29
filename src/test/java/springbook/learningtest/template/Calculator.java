@@ -13,13 +13,12 @@ public class Calculator {
 			@Override
 			public Integer doSomethingWithReader(BufferedReader br) throws IOException {
 				// TODO Auto-generated method stub
-				int ret = lineReadTemplate(filepath, new LineCallback() {
+				int ret = lineReadTemplate(filepath, new LineCallback<Integer>() {
 					@Override
 					public Integer doSomethinWithLine(String line, Integer value) {
 						// TODO Auto-generated method stub
 						return value + Integer.valueOf(line);
 					}
-
 				}, 0);
 
 				return ret;
@@ -34,16 +33,16 @@ public class Calculator {
 			@Override
 			public Integer doSomethingWithReader(BufferedReader br) throws IOException {
 				// TODO Auto-generated method stub
-				
-				return lineReadTemplate(filepath, new LineCallback(){
+
+				return lineReadTemplate(filepath, new LineCallback<Integer>() {
 
 					@Override
 					public Integer doSomethinWithLine(String line, Integer value) {
 						// TODO Auto-generated method stub
-						return value*Integer.valueOf(line);
+						return value * Integer.valueOf(line);
 					}
 
-				},1);
+				}, 1);
 			}
 		};
 
@@ -73,10 +72,10 @@ public class Calculator {
 		}
 	}
 
-	public Integer lineReadTemplate(String filepath, LineCallback callback, Integer initVal) throws IOException {
+	public <T> T lineReadTemplate(String filepath, LineCallback<T> callback, T initVal) throws IOException {
 		BufferedReader br = null;
 		br = new BufferedReader(new FileReader(filepath));
-		Integer res = initVal;
+		T res = initVal;
 		String line = null;
 
 		while ((line = br.readLine()) != null) {
@@ -84,7 +83,19 @@ public class Calculator {
 		}
 
 		return res;
+	}
 
+	public String concatenate(String filepath) throws IOException {
+		LineCallback<String> concatenateCallback = new LineCallback<String>() {
+
+			@Override
+			public String doSomethinWithLine(String line, String value) {
+				// TODO Auto-generated method stub
+				return value + line;
+			}
+
+		};
+		return lineReadTemplate(filepath, concatenateCallback, "");
 	}
 
 }
