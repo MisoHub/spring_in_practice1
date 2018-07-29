@@ -5,10 +5,16 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.jdbc.core.RowMapper;
 
 import springbook.user.connection.JdbcContext;
 import springbook.user.statement.AddStatement;
@@ -18,137 +24,118 @@ import springbook.user.statement.StatementStrategy;
 
 public class UserDao {
 
-	// private ConnectionMaker userDaoConnectionMaker = null;
-
-	private JdbcContext jdbcContext;
-	private DataSource dataSource;
+	// private JdbcContext jdbcContext;
+	// private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
 
 	public void setDataSource(DataSource dataSource) {
-		this.dataSource = dataSource;
+		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
-	public void setJdbcContext(JdbcContext jdbcContext) {
-		this.jdbcContext = jdbcContext;
-	}
+	// public void setJdbcContext(JdbcContext jdbcContext) {
+	// this.jdbcContext = jdbcContext;
+	// }
 
 	// inner class 에서 변수를 사용할 수 있도록 final로 전달
 	public void add(final User user) throws SQLException, ClassNotFoundException {
 
-		// 익명클래스로 선언하여 코드 효율화를 시킴
-		this.jdbcContext.workWithStatementStrategy(new StatementStrategy() {
-			@Override
-			public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
-				// TODO Auto-generated method stub
-
-				PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values (?,?,?)");
-				ps.setString(1, user.getId());
-				ps.setString(2, user.getName());
-				ps.setString(3, user.getPassword());
-
-				return ps;
-			}
-		});
+		this.jdbcTemplate.update("insert into users(id, name,password) values(?,?,?)", user.getId(), user.getName(),
+				user.getPassword());
 
 	}
 
 	public User get(String id) throws ClassNotFoundException, SQLException {
 
-		// 20180722 원복함
-		// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
-		Connection c = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		User user = null;
-		// try ~ catch 구문으로 예외처리를 한다.
-		try {
-			c = this.dataSource.getConnection();
-			ps = c.prepareStatement("select * from users where id=?");
-			ps.setString(1, id);
+		// return this.jdbcTemplate.query(new PreparedStatementCreator() {
+		//
+		// @Override
+		// public PreparedStatement createPreparedStatement(Connection arg0) throws
+		// SQLException {
+		// // TODO Auto-generated method stub
+		// return arg0.prepareStatement("select * from users where id=\'"+id+"\'");
+		// }
+		//
+		// }, new ResultSetExtractor<User>() {
+		//
+		// @Override
+		// public User extractData(ResultSet arg0) throws SQLException,
+		// DataAccessException {
+		// // TODO Auto-generated method stub
+		// arg0.next();
+		// return new
+		// User(arg0.getString("id"),arg0.getString("name"),arg0.getString("password"));
+		// }
+		// });
+		//
+		//
+		// return this.jdbcTemplate.queryForObject("select * from users where id=?", new
+		// Object[] { id },User.class);
+		// 위와 같이 설정하면 오류남. 결과로 3개의 필드값(String)이 return 되는데, 각각이 User 인스턴스에 대응하여 리턴됨.
 
-			rs = ps.executeQuery();
-			user = null;
+		return this.jdbcTemplate.queryForObject("select * from users where id=?", new Object[] { id },
+				new RowMapper<User>() {
 
-			if (rs.next()) {
-				user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
-			}
+					@Override
+					public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+						// TODO Auto-generated method stub
+						return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+					}
+				});
 
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-
-			if (rs != null) {
-				// close 구문에도 예외가 발생함으로 2중으로 try catch를 수행해야 한다.
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					throw e;
-				}
-			}
-		}
-		if (c != null) {
-			try {
-				c.close();
-			} catch (SQLException e) {
-				throw e;
-			}
-		}
-
-		// 예외테스트 적용 (TDD)
-		if (user == null)
-			throw new EmptyResultDataAccessException(1);
-
-		return user;
 	}
 
 	public void deleteAll() throws SQLException {
 
-		this.jdbcContext.executeSQL("delete from users");
+		// this.jdbcTemplate.update(new PreparedStatementCreator() {
+		//
+		// @Override
+		// public PreparedStatement createPreparedStatement(Connection arg0) throws
+		// SQLException {
+		// // TODO Auto-generated method stub
+		// return arg0.prepareStatement("delete from users");
+		// }
+		// });
+
+		// 내부적인 callback 을 사용한다.
+		this.jdbcTemplate.update("delete from users");
+
 	}
 
 	public int getCount() throws ClassNotFoundException, SQLException {
-		// 메소드 추출 하지 못함. return 값을 받아야 하는 경우.
-		Connection c = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-		int count;
-		try {
 
-			c = this.dataSource.getConnection();
-			ps = c.prepareStatement("select count(*) from users");
-			rs = ps.executeQuery();
-			rs.next();
-			count = rs.getInt(1);
-		} catch (SQLException e) {
-			throw e;
-		} finally {
-
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					throw e;
-				}
-
-			}
-			if (ps != null) {
-				try {
-					ps.close();
-				} catch (SQLException e) {
-					throw e;
-				}
-
-			}
-			if (c != null) {
-				try {
-					c.close();
-				} catch (SQLException e) {
-					throw e;
-					// 예외처리 마지막... 반복적인 예외처리에 많은 effort가 든다...
-				}
-			}
-		}
-
-		return count;
+		// return this.jdbcTemplate.query(new PreparedStatementCreator() {
+		//
+		// @Override
+		// public PreparedStatement createPreparedStatement(Connection arg0) throws
+		// SQLException {
+		// // TODO Auto-generated method stub
+		// return arg0.prepareStatement("select count(*) from users");
+		// }
+		//
+		// }, new ResultSetExtractor<Integer>() {
+		//
+		// @Override
+		// public Integer extractData(ResultSet arg0) throws SQLException,
+		// DataAccessException {
+		// // TODO Auto-generated method stub
+		// arg0.next();
+		// return arg0.getInt(1);
+		//
+		// }
+		// });
+		// queryForObject 는 dedicated 됨.
+		return this.jdbcTemplate.queryForObject("select count(*) from users", Integer.class);
 	}
 
+	// 그냥 jdbcTemplate.qeury 를 수행한다. (queryForObject 가 아님) 
+	public List<User> getAll() {
+		return this.jdbcTemplate.query("select * from users order by id", new RowMapper<User>() {
+			@Override
+			public User mapRow(ResultSet rs, int rowN) throws SQLException {
+				// TODO Auto-generated method stub
+				return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+			}
+		});
+		// mapRow 에서 return 한 User는 List 형태로 jdbcTemplate에 의해서 return된다.
+	}
 }

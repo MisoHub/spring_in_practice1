@@ -1,6 +1,7 @@
 package springbook.user.dao;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -33,8 +34,8 @@ public class UserDaoTest {
 		// ClassPathXmlApplicationContext("tobiAppContext.xml");
 		// this.dao = this.context.getBean("userDao", UserDao.class);
 
-		users = new User[] { new User("gregory", "그레고리", "password"), new User("desmond", "데스몬드", "password"),
-				new User("jessy", "제시", "password"), new User("artpaper", "아트페퍼", "password") };
+		users = new User[] { new User("agregory", "그레고리", "password"), new User("bdesmond", "데스몬드", "password"),
+				new User("cjessy", "제시", "password"), new User("dartpaper", "아트페퍼", "password") };
 	}
 
 	@Test
@@ -70,13 +71,48 @@ public class UserDaoTest {
 
 	// 예외 발생 테스트, expected 추가 시 보통 테스트와 반대로 정상적으로 테스트 메소드를 마치면 실패, expected 예외가 던져지면
 	// 테스트 성공.
-	@Test(expected = org.springframework.dao.EmptyResultDataAccessException.class)
+	@Test(expected = org.springframework.dao.DataAccessException.class)
 	public void getUserFailure() throws ClassNotFoundException, SQLException {
 
 		dao.deleteAll();
 		assertThat(dao.getCount(), is(0));
-
 		dao.get("unknown_id");
+	}
+
+	@Test
+	public void getAll() throws SQLException, ClassNotFoundException {
+		dao.deleteAll();
+		
+		List<User> uList = dao.getAll();
+		assertThat(uList.size(), is(0));
+		
+		dao.add(users[0]);
+		uList = dao.getAll();
+		assertThat(uList.size(), is(1));
+		checkSameUser(users[0],uList.get(0));
+		
+		
+		dao.add(users[1]);
+		uList = dao.getAll();
+		assertThat(uList.size(), is(2));
+		checkSameUser(users[0],uList.get(0));
+		checkSameUser(users[1],uList.get(1));
+		
+		dao.add(users[2]);
+		uList = dao.getAll();
+		assertThat(uList.size(), is(3));
+		checkSameUser(users[0],uList.get(0));
+		checkSameUser(users[1],uList.get(1));
+		checkSameUser(users[2],uList.get(2));
+		
+		
+		
+	}
+
+	private void checkSameUser(User user1, User user2) {
+		assertThat(user1.getId(), is(user2.getId()));
+		assertThat(user1.getName(), is(user2.getName()));
+		assertThat(user1.getPassword(), is(user2.getPassword()));
 	}
 
 }
