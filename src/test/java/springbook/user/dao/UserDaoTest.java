@@ -3,9 +3,16 @@ package springbook.user.dao;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.sql.DataSource;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.junit.Before;
@@ -21,20 +28,19 @@ public class UserDaoTest {
 
 	// 테스트 오브젝트가 만들어지고 나면 스프링 테스트 컨텍스트에 의해 자동으로 값이 주입된다.
 	@Autowired
-	private ApplicationContext context = null;
+	private ApplicationContext context;
 
 	@Autowired
-	private UserDao dao = null;
+	private UserDao dao;
+	
+	@Autowired
+	private DataSource dataSource;
+
 	private User[] users = null;
 
 	@Before
 	public void setup() {
-		// setup에서 객체를 생성하면 매 테스트 마다 실행되어 여러개의 context가 생성된다.
-		// ApplicationContext context = new
-		// ClassPathXmlApplicationContext("tobiAppContext.xml");
-		// this.dao = this.context.getBean("userDao", UserDao.class);
-
-		users = new User[] { new User("agregory", "그레고리", "password"), new User("bdesmond", "데스몬드", "password"),
+		this.users = new User[] { new User("agregory", "그레고리", "password"), new User("bdesmond", "데스몬드", "password"),
 				new User("cjessy", "제시", "password"), new User("dartpaper", "아트페퍼", "password") };
 	}
 
@@ -82,31 +88,48 @@ public class UserDaoTest {
 	@Test
 	public void getAll() throws SQLException, ClassNotFoundException {
 		dao.deleteAll();
-		
+
 		List<User> uList = dao.getAll();
 		assertThat(uList.size(), is(0));
-		
+
 		dao.add(users[0]);
 		uList = dao.getAll();
 		assertThat(uList.size(), is(1));
-		checkSameUser(users[0],uList.get(0));
-		
-		
+		checkSameUser(users[0], uList.get(0));
+
 		dao.add(users[1]);
 		uList = dao.getAll();
 		assertThat(uList.size(), is(2));
-		checkSameUser(users[0],uList.get(0));
-		checkSameUser(users[1],uList.get(1));
-		
+		checkSameUser(users[0], uList.get(0));
+		checkSameUser(users[1], uList.get(1));
+
 		dao.add(users[2]);
 		uList = dao.getAll();
 		assertThat(uList.size(), is(3));
-		checkSameUser(users[0],uList.get(0));
-		checkSameUser(users[1],uList.get(1));
-		checkSameUser(users[2],uList.get(2));
-		
-		
-		
+		checkSameUser(users[0], uList.get(0));
+		checkSameUser(users[1], uList.get(1));
+		checkSameUser(users[2], uList.get(2));
+
+	}
+
+	@Test(expected = DataAccessException.class)
+	public void duplicateKey() {
+		dao.deleteAll();
+		dao.add(users[0]);
+		dao.add(users[0]);
+	}
+	
+	@Test
+	public void sqlExceptionTranslate() {
+		dao.deleteAll();
+		try {
+			dao.add(users[0]);
+			dao.add(users[0]);
+		}catch(DuplicateKeyException ex) {
+			SQLException sqlEx = (SQLException)ex.getRootCause();
+			SQLExceptionTranslator set = new SQLErrorCodeSQLExceptionTranslator(this.dataSource);
+			assertThat((DuplicateKeyException)set.translate(null,null,sqlEx),is(DuplicateKeyException.class));
+		}
 	}
 
 	private void checkSameUser(User user1, User user2) {
