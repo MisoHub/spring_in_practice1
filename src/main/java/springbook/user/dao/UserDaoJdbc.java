@@ -20,8 +20,9 @@ public class UserDaoJdbc implements UserDao {
 	// inner class 에서 변수를 사용할 수 있도록 final로 전달
 	public void add(final User user) {
 
-		this.jdbcTemplate.update("insert into users(id, name,password) values(?,?,?)", user.getId(), user.getName(),
-				user.getPassword());
+		this.jdbcTemplate.update("insert into users(id, name,password,level, login, recommend) values(?,?,?,?,?,?)",
+				user.getId(), user.getName(), user.getPassword(), user.getLevel().intValue(), user.getLogin(),
+				user.getRecommend());
 
 	}
 
@@ -29,6 +30,12 @@ public class UserDaoJdbc implements UserDao {
 
 		return this.jdbcTemplate.queryForObject("select * from users where id=?", new Object[] { id }, this.userMapper);
 
+	}
+
+	public void update(User user) {
+		this.jdbcTemplate.update("update users set name =?, password=?, level=?, login=?, recommend=?" + " where id=?",
+				user.getName(), user.getPassword(), user.getLevel().intValue(), user.getLogin(), user.getRecommend(),
+				user.getId());
 	}
 
 	public void deleteAll() {
@@ -51,7 +58,9 @@ public class UserDaoJdbc implements UserDao {
 		@Override
 		public User mapRow(ResultSet rs, int arg1) throws SQLException {
 			// TODO Auto-generated method stub
-			return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+			return new User(rs.getString("id"), rs.getString("name"), rs.getString("password"),
+					Level.valueOf(rs.getInt("level")), rs.getInt("login"), rs.getInt("recommend"));
+
 		}
 	};
 }

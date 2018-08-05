@@ -40,8 +40,9 @@ public class UserDaoTest {
 
 	@Before
 	public void setup() {
-		this.users = new User[] { new User("agregory", "그레고리", "password"), new User("bdesmond", "데스몬드", "password"),
-				new User("cjessy", "제시", "password"), new User("dartpaper", "아트페퍼", "password") };
+		this.users = new User[] { new User("agregory", "그레고리", "password", Level.BASIC, 1, 0), new User("bdesmond", "데스몬드", "password",Level.SILVER, 55, 10),
+				new User("cjessy", "제시", "password",Level.BASIC, 5, 1), new User("dartpaper", "아트페퍼", "password",Level.GOLD, 100, 40) };
+		
 	}
 
 	@Test
@@ -50,7 +51,7 @@ public class UserDaoTest {
 		dao.deleteAll();
 		assertThat(dao.getCount(), is(0));
 
-		User user = new User("whiteship", "가나다", "pw1234");
+		User user = new User("whiteship", "가나다", "pw1234",Level.BASIC, 1, 0);
 
 		dao.add(user);
 		assertThat(dao.getCount(), is(1));
@@ -131,11 +132,37 @@ public class UserDaoTest {
 			assertThat((DuplicateKeyException)set.translate(null,null,sqlEx),is(DuplicateKeyException.class));
 		}
 	}
+	
+	
+	@Test
+	public void update() {
+		dao.deleteAll();
+		
+		User user = new User(users[0]);
+
+		dao.add(user);
+		dao.add(users[2]);
+		
+		user.setName(users[1].getName());
+		user.setPassword(users[1].getPassword());
+		user.setLevel(users[1].getLevel());
+		user.setLogin(users[1].getLogin());
+		user.setRecommend(users[1].getRecommend());
+		
+		dao.update(user);
+		
+		checkSameUser(user,dao.get(user.getId()));
+		checkSameUser(users[2],dao.get(users[2].getId()));
+	}
 
 	private void checkSameUser(User user1, User user2) {
 		assertThat(user1.getId(), is(user2.getId()));
 		assertThat(user1.getName(), is(user2.getName()));
 		assertThat(user1.getPassword(), is(user2.getPassword()));
+		assertThat(user1.getLevel(), is(user2.getLevel()));
+		assertThat(user1.getLogin(), is(user2.getLogin()));
+		assertThat(user1.getRecommend(), is(user2.getRecommend()));
+		
 	}
 
 }

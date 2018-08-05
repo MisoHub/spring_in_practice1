@@ -29,6 +29,7 @@ public interface UserDao {
 	public void deleteAll();
 	public int getCount();
 	public List<User> getAll();
+	public void update(User user1);
 	
 	
 }
