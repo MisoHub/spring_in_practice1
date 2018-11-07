@@ -7,8 +7,11 @@ import org.hamcrest.Matchers;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.sql.DataSource;
 
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,10 @@ public class UserServiceTest {
 
 	@Autowired
 	UserLevelUpgradePolicy userLevelUpgradePolicy;
+	
+	@Autowired 
+	DataSource dataSource;
+	
 
 	List<User> users;
 
@@ -57,7 +64,12 @@ public class UserServiceTest {
 			userDao.add(user);
 		}
 
-		userService.upgradeLevels();
+		try {
+			userService.upgradeLevels();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		checkLevelUpgraded(users.get(0), false);
 		checkLevelUpgraded(users.get(1), true);
@@ -91,6 +103,8 @@ public class UserServiceTest {
 		
 		userService.setUserDao(this.userDao);
 		userService.setUserLevelUpgradePolicy(new TestNormalUserLevelUpgradePolicy(users.get(3).getId()));
+		userService.setDataSource(this.dataSource);
+		
 		userDao.deleteAll();
 		for (User user : users)
 			userDao.add(user);
@@ -100,10 +114,14 @@ public class UserServiceTest {
 			fail("TestUserSErviceException expected");
 		} catch (TestUserServiceException e) {
 			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		checkLevelUpgraded(users.get(1), false);
 
 	}
+	
 
 	// // 명시적으로 다음 level 을 입력하게 되어 있어, 테스트에 바람직하지 않다.
 	// private void checkLevel(User user, Level expLevel) {

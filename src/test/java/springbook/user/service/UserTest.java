@@ -6,8 +6,8 @@ import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
-import springbook.user.dao.Level;
-import springbook.user.dao.User;
+import springbook.user.model.Level;
+import springbook.user.model.User;
 
 public class UserTest {
 	
