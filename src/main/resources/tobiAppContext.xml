@@ -4,36 +4,43 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-<!-- srping에서 제공하는 DataSource를 정의한다 -->
-	<bean id="myDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
-	<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
-	<property name="url" value="jdbc:mysql://localhost/spring"></property>
-	<property name="username" value="root"></property>
-	<property name="password" value="!root123$"></property>
+	<!-- srping에서 제공하는 DataSource를 정의한다 -->
+	<bean id="myDataSource"
+		class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+		<property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost/spring"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="!root123$"></property>
 	</bean>
-	
-	<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 빈id 이다. -->
+
+	<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 
+		빈id 이다. -->
 	<!-- 아래에서 생성한 userDao 를 이용하여 UserService를 제공한다 -->
 	<bean id="userService" class="springbook.user.service.UserService">
 		<property name="userDao" ref="myUserDao"></property>
-		<property name="userLevelUpgradePolicy" ref="normalUserLevelUpgradePolicy"></property>
+		<property name="userLevelUpgradePolicy"
+			ref="normalUserLevelUpgradePolicy"></property>
 	</bean>
-	
-	<bean id="normalUserLevelUpgradePolicy" class="springbook.user.service.NormalUserLevelUpgradePolicy">
+
+	<bean id="normalUserLevelUpgradePolicy"
+		class="springbook.user.service.NormalUserLevelUpgradePolicy">
 		<property name="userDao" ref="myUserDao"></property>
 	</bean>
-	
 
-<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 빈id 이다. -->
-<!-- 위에서 정의한 Datasource를 member instance로 사용한다. -->
+
+	<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 
+		빈id 이다. -->
+	<!-- 위에서 정의한 Datasource를 member instance로 사용한다. -->
 	<bean id="myUserDao" class="springbook.user.dao.UserDaoJdbc">
 		<property name="dataSource" ref="myDataSource"></property>
 	</bean>
-	
-<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 빈id 이다. -->
-<!-- 위에서 정의한 Datasource를 member instance로 사용한다. -->
-	<bean id="myJdbcContext" class="springbook.user.connection.JdbcContext">
+
+	<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 
+		빈id 이다. -->
+	<!-- 위에서 정의한 Datasource를 member instance로 사용한다. -->
+	<bean id="myJdbcContext"
+		class="springbook.user.connection.JdbcContext">
 		<property name="dataSource" ref="myDataSource"></property>
 	</bean>
-	
+
 </beans>

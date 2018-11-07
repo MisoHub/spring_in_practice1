@@ -1,6 +1,6 @@
 package springbook.user.service;
 
-import springbook.user.dao.User;
+import springbook.user.model.User;
 
 public interface UserLevelUpgradePolicy {
 	boolean canUpgradeLevel(User user);

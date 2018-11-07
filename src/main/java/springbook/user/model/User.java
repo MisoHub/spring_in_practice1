@@ -1,4 +1,4 @@
-package springbook.user.dao;
+package springbook.user.model;
 
 public class User {
 

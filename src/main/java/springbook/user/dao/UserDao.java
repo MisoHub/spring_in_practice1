@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
 import springbook.user.connection.JdbcContext;
+import springbook.user.model.User;
 import springbook.user.statement.AddStatement;
 import springbook.user.statement.DeleteAllStatement;
 import springbook.user.statement.GetStatement;

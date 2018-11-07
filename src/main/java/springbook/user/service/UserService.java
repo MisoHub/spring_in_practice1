@@ -13,8 +13,8 @@ public class UserService {
 	public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
 	public static final int MIN_RECOMMEND_FOR_GOLD = 30;
 	
-	private UserDao userDao;
-	private UserLevelUpgradePolicy userLevelUpgradePolicy; 
+	protected UserDao userDao;
+	protected UserLevelUpgradePolicy userLevelUpgradePolicy; 
 	
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;

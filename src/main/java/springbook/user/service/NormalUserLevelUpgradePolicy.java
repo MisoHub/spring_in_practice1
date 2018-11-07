@@ -1,7 +1,7 @@
 package springbook.user.service;
 
-import springbook.user.dao.Level;
-import springbook.user.dao.User;
+import springbook.user.model.Level;
+import springbook.user.model.User;
 import springbook.user.dao.UserDao;
 
 public class NormalUserLevelUpgradePolicy implements UserLevelUpgradePolicy {
