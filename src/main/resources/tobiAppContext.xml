@@ -18,15 +18,25 @@
 	<!-- 아래에서 생성한 userDao 를 이용하여 UserService를 제공한다 -->
 	<bean id="userService" class="springbook.user.service.UserService">
 		<property name="userDao" ref="myUserDao"></property>
-		<property name="userLevelUpgradePolicy"
-			ref="normalUserLevelUpgradePolicy"></property>
+		<property name="userLevelUpgradePolicy" ref="TestNormalUserLevelUpgradePolicy"></property>
+		<property name="txManager" ref="transactionManager"></property>
+	</bean>
+
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	
+	<bean id="testUserLevelUpgradePolicy"
+		class="springbook.user.service.TestNormalUserLevelUpgradePolicy">
+		<property name="superPolicy" ref="normalUserLevelUpgradePolicy"></property>
 	</bean>
 
 	<bean id="normalUserLevelUpgradePolicy"
 		class="springbook.user.service.NormalUserLevelUpgradePolicy">
 		<property name="userDao" ref="myUserDao"></property>
 	</bean>
-
 
 	<!-- name 어트리뷰트는 DI에 사용할 수정자(setter) 메소드 이름이고, ref 어트리뷰트는 주입할 오브젝트를 정의한 
 		빈id 이다. -->

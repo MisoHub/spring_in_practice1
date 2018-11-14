@@ -3,11 +3,18 @@ package springbook.user.service;
 import springbook.user.dao.UserDao;
 import springbook.user.model.User;
 
-public class TestNormalUserLevelUpgradePolicy extends NormalUserLevelUpgradePolicy {
+public class TestNormalUserLevelUpgradePolicy implements UserLevelUpgradePolicy {
 
+	// decoration pattern 적용 
+	private UserLevelUpgradePolicy superPolicy;
 	private String id;
 	
-	public TestNormalUserLevelUpgradePolicy(String id) {
+
+	public void setSuperPolicy(UserLevelUpgradePolicy superPolicy) {
+		this.superPolicy = superPolicy;
+	}
+	
+	public void setString(String id) {
 		this.id = id;
 	}
 	
@@ -21,7 +28,13 @@ public class TestNormalUserLevelUpgradePolicy extends NormalUserLevelUpgradePoli
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		super.upgradeLevel(user);
+		superPolicy.upgradeLevel(user);
+	}
+
+	@Override
+	public boolean canUpgradeLevel(User user) {
+		// TODO Auto-generated method stub
+		return superPolicy.canUpgradeLevel(user);
 	}
 
 }

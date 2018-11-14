@@ -9,6 +9,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
+import springbook.user.model.Level;
 import springbook.user.model.User;
 
 public class UserDaoJdbc implements UserDao {

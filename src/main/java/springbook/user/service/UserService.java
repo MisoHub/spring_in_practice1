@@ -8,6 +8,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import springbook.user.model.Level;
@@ -21,6 +22,7 @@ public class UserService {
 	protected UserDao userDao;
 	protected DataSource dataSource;
 	protected UserLevelUpgradePolicy userLevelUpgradePolicy;
+	protected PlatformTransactionManager txManager;
 
 	public void setUserDao(UserDao userDao) {
 		this.userDao = userDao;
@@ -32,6 +34,10 @@ public class UserService {
 
 	public void setUserLevelUpgradePolicy(UserLevelUpgradePolicy ulup) {
 		this.userLevelUpgradePolicy = ulup;
+	}
+	
+	public void setTxManager(PlatformTransactionManager txManager) {
+		this.txManager = txManager;
 	}
 
 	// re-factoried function
@@ -47,12 +53,10 @@ public class UserService {
 		
 		try {
 			
-		List<User> users = userDao.getAll();
-
-		for (User user : users) {
-			if (userLevelUpgradePolicy.canUpgradeLevel(user))
-				userLevelUpgradePolicy.upgradeLevel(user);
-			
+			List<User> users = userDao.getAll();
+			for (User user : users) {
+				if (userLevelUpgradePolicy.canUpgradeLevel(user))
+					userLevelUpgradePolicy.upgradeLevel(user);
 		}
 			c.commit();
 		}catch(Exception e) {

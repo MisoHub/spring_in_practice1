@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-import springbook.user.dao.User;
+import springbook.user.model.User;
 
 public class AddStatement implements StatementStrategy {
 

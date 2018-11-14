@@ -7,6 +7,7 @@ import org.hamcrest.Matchers;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+import java.lang.reflect.Proxy;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import springbook.user.model.Level;
 import springbook.user.model.User;
@@ -31,15 +33,14 @@ public class UserServiceTest {
 	UserDao userDao;
 
 	@Autowired
-	UserService userService;
-
-	@Autowired
-	UserLevelUpgradePolicy userLevelUpgradePolicy;
+	UserService testUserService;
 	
 	@Autowired 
 	DataSource dataSource;
 	
-
+	@Autowired
+	PlatformTransactionManager txManager;
+	
 	List<User> users;
 
 	@Before
@@ -54,7 +55,7 @@ public class UserServiceTest {
 
 	@Test
 	public void bean() {
-		assertThat(this.userService, Matchers.is(Matchers.notNullValue()));
+		assertThat(this.testUserService, Matchers.is(Matchers.notNullValue()));
 	}
 
 	@Test
@@ -65,7 +66,7 @@ public class UserServiceTest {
 		}
 
 		try {
-			userService.upgradeLevels();
+			testUserService.upgradeLevels();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -86,8 +87,8 @@ public class UserServiceTest {
 		User userWithoutLevel = users.get(0);
 		userWithoutLevel.setLevel(null);
 
-		userService.add(userWithLevel);
-		userService.add(userWithoutLevel);
+		testUserService.add(userWithLevel);
+		testUserService.add(userWithoutLevel);
 
 		User userWithLevelRead = userDao.get(userWithLevel.getId());
 		User userWithoutLevelRead = userDao.get(userWithoutLevel.getId());
@@ -99,18 +100,25 @@ public class UserServiceTest {
 
 	@Test
 	public void upgradeAllOrNothing() {
-		UserService userService = new UserService();
+
+		// Transaction Hander 생성
+		TransactionHandler txHandler = new TransactionHandler();
+		txHandler.setTarget(testUserService);
+		txHandler.setTransactionManager(txManager);
+		txHandler.setPattern("upgradeLevels");
 		
-		userService.setUserDao(this.userDao);
-		userService.setUserLevelUpgradePolicy(new TestNormalUserLevelUpgradePolicy(users.get(3).getId()));
-		userService.setDataSource(this.dataSource);
-		
+		//UserService 타입의 다이나믹 프록시 생성.. 
+		UserService txUserService = (UserService)Proxy.newProxyInstance(
+				getClass().getClassLoader(), 
+				new Class[] {UserService.class}, 
+				txHandler);
+
 		userDao.deleteAll();
 		for (User user : users)
 			userDao.add(user);
 
 		try {
-			userService.upgradeLevels();
+			txUserService.upgradeLevels();
 			fail("TestUserSErviceException expected");
 		} catch (TestUserServiceException e) {
 			
@@ -122,12 +130,6 @@ public class UserServiceTest {
 
 	}
 	
-
-	// // 명시적으로 다음 level 을 입력하게 되어 있어, 테스트에 바람직하지 않다.
-	// private void checkLevel(User user, Level expLevel) {
-	// User userUpdate = userDao.get(user.getId());
-	// assertThat(userUpdate.getLevel(), Matchers.is(expLevel));
-	// }
 
 	private void checkLevelUpgraded(User user, boolean upgraded) {
 		User userUpdate = userDao.get(user.getId());

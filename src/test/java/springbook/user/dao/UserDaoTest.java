@@ -16,6 +16,7 @@ import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import springbook.user.model.Level;
 import springbook.user.model.User;
 
 import org.junit.Before;
