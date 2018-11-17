@@ -16,6 +16,8 @@ import javax.sql.DataSource;
 
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -30,7 +32,13 @@ import springbook.user.dao.UserDao;
 public class UserServiceTest {
 
 	@Autowired
+	ApplicationContext context; 
+	
+	@Autowired
 	UserDao userDao;
+
+	@Autowired
+	UserService userService;
 
 	@Autowired
 	UserService testUserService;
@@ -46,16 +54,16 @@ public class UserServiceTest {
 	@Before
 	public void setUp() {
 		users = Arrays.asList(
-				new User("agregory", "그레고리포터", "password", Level.BASIC, UserService.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
-				new User("bdesmond", "폴데스몬드", "password", Level.BASIC, UserService.MIN_LOGCOUNT_FOR_SILVER, 10),
-				new User("cjessy", "제시존스", "password", Level.SILVER, 60, UserService.MIN_RECOMMEND_FOR_GOLD - 1),
-				new User("dartpaper", "아트페퍼", "password", Level.SILVER, 100, UserService.MIN_RECOMMEND_FOR_GOLD),
+				new User("agregory", "그레고리포터", "password", Level.BASIC, UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER - 1, 0),
+				new User("bdesmond", "폴데스몬드", "password", Level.BASIC, UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER, 10),
+				new User("cjessy", "제시존스", "password", Level.SILVER, 60, UserServiceImpl.MIN_RECOMMEND_FOR_GOLD - 1),
+				new User("dartpaper", "아트페퍼", "password", Level.SILVER, 100, UserServiceImpl.MIN_RECOMMEND_FOR_GOLD),
 				new User("echalie", "찰리파커", "password", Level.GOLD, 160, 129));
 	}
 
 	@Test
 	public void bean() {
-		assertThat(this.testUserService, Matchers.is(Matchers.notNullValue()));
+		assertThat(this.userService, Matchers.is(Matchers.notNullValue()));
 	}
 
 	@Test
@@ -66,7 +74,7 @@ public class UserServiceTest {
 		}
 
 		try {
-			testUserService.upgradeLevels();
+			userService.upgradeLevels();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -87,8 +95,8 @@ public class UserServiceTest {
 		User userWithoutLevel = users.get(0);
 		userWithoutLevel.setLevel(null);
 
-		testUserService.add(userWithLevel);
-		testUserService.add(userWithoutLevel);
+		userService.add(userWithLevel);
+		userService.add(userWithoutLevel);
 
 		User userWithLevelRead = userDao.get(userWithLevel.getId());
 		User userWithoutLevelRead = userDao.get(userWithoutLevel.getId());
@@ -99,27 +107,24 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void upgradeAllOrNothing() {
+	@DirtiesContext	 // 컨텍스트 무효화 애노테이션 
+	public void upgradeAllOrNothing() throws Throwable {
 
-		// Transaction Hander 생성
-		TransactionHandler txHandler = new TransactionHandler();
-		txHandler.setTarget(testUserService);
-		txHandler.setTransactionManager(txManager);
-		txHandler.setPattern("upgradeLevels");
+		TxProxyFactoryBean txProxyFactoryBean = context.getBean(
+				"&userService", TxProxyFactoryBean.class);
 		
-		//UserService 타입의 다이나믹 프록시 생성.. 
-		UserService txUserService = (UserService)Proxy.newProxyInstance(
-				getClass().getClassLoader(), 
-				new Class[] {UserService.class}, 
-				txHandler);
-
+		txProxyFactoryBean.setTarget(testUserService);
+		UserService txUserService = (UserService)txProxyFactoryBean.getObject();
+		
+		
 		userDao.deleteAll();
+		
 		for (User user : users)
 			userDao.add(user);
 
 		try {
 			txUserService.upgradeLevels();
-			fail("TestUserSErviceException expected");
+			fail("TestUserServiceException expected");
 		} catch (TestUserServiceException e) {
 			
 		} catch (SQLException e) {
@@ -132,6 +137,7 @@ public class UserServiceTest {
 	
 
 	private void checkLevelUpgraded(User user, boolean upgraded) {
+
 		User userUpdate = userDao.get(user.getId());
 		if (upgraded) {
 			assertThat(userUpdate.getLevel(), Matchers.is(user.getLevel().nextLevel()));

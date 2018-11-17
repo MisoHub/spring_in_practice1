@@ -14,7 +14,7 @@ public class TestNormalUserLevelUpgradePolicy implements UserLevelUpgradePolicy 
 		this.superPolicy = superPolicy;
 	}
 	
-	public void setString(String id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 	
@@ -22,12 +22,8 @@ public class TestNormalUserLevelUpgradePolicy implements UserLevelUpgradePolicy 
 	public void upgradeLevel(User user) {
 		// TODO Auto-generated method stub
 		if(user.getId().equals(this.id))
-			try {
-				throw new TestUserServiceException();
-			} catch (TestUserServiceException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			throw new TestUserServiceException();
+			
 		superPolicy.upgradeLevel(user);
 	}
 

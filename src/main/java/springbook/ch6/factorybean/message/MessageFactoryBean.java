@@ -24,7 +24,7 @@ public class MessageFactoryBean implements FactoryBean<Message> {
 	}
 
 	@Override
-	public Class<?> getObjectType() {
+	public Class<? extends Message> getObjectType() {
 		// TODO Auto-generated method stub
 		return Message.class;
 	}

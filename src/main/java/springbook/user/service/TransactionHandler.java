@@ -20,6 +20,7 @@ public class TransactionHandler implements InvocationHandler {
 	public void setTransactionManager(PlatformTransactionManager transactionManager) {
 		this.transactionManager = transactionManager;
 	}
+
 	public void setPattern(String pattern) {
 		this.pattern = pattern;
 	}
@@ -30,7 +31,7 @@ public class TransactionHandler implements InvocationHandler {
 
 		if (method.getName().startsWith(pattern)) {
 			return invokeInTransaction(method, args);
-		}else
+		} else
 			return method.invoke(target, args);
 	}
 
@@ -39,7 +40,6 @@ public class TransactionHandler implements InvocationHandler {
 		TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
 
 		try {
-			this.transactionManager.getTransaction(new DefaultTransactionDefinition());
 			Object ret = method.invoke(target, args);
 			this.transactionManager.commit(status);
 			return ret;
