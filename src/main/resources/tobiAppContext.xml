@@ -13,40 +13,78 @@
 		<property name="password" value="!root123$"></property>
 	</bean>
 
-	<!-- 트랜잭션을 위한 다이나믹 프록시가 적용된 UserService를 생성하는 팩토리 빈-->
-	<bean id="userService" class="springbook.user.service.TxProxyFactoryBean">
+	<!-- 트랜잭션을 위한 다이나믹 프록시가 적용된 UserService를 생성하는 팩토리 빈 -->
+	<!-- JDK factory bean <bean id="userService" class="springbook.user.service.TxProxyFactoryBean"> 
+		<property name="target" ref="userServiceImpl"></property> <property name="transactionManager" 
+		ref="transactionManager"></property> <property name="pattern" value="upgradeLevels"></property> 
+		<property name="serviceInterface" value="springbook.user.service.UserService"></property> 
+		</bean> -->
+
+	<!-- spring 기반의 factory bean -->
+	<bean id="userService"
+		class="org.springframework.aop.framework.ProxyFactoryBean">
 		<property name="target" ref="userServiceImpl"></property>
-		<property name="transactionManager" ref="transactionManager"></property>
-		<property name="pattern" value="upgradeLevels"></property>
-		<property name="serviceInterface" value="springbook.user.service.UserService"></property>
-	</bean>	
-		
+		<property name="interceptorNames">
+			<list>
+			<!-- 여러개의 누가기능Advisor을 추가할 수 있다.  -->
+				<value>transactionAdvisor</value>
+			</list>
+		</property>
+	</bean>
+
+
 	<!-- 아래에서 생성한 userDao 를 이용하여 UserService를 제공한다 -->
-	<bean id="userServiceImpl" class="springbook.user.service.UserServiceImpl">
+	<bean id="userServiceImpl"
+		class="springbook.user.service.UserServiceImpl">
 		<property name="userDao" ref="myUserDao"></property>
-		<property name="userLevelUpgradePolicy" ref="normalUserLevelUpgradePolicy"></property>
+		<property name="userLevelUpgradePolicy"
+			ref="normalUserLevelUpgradePolicy"></property>
 		<property name="txManager" ref="transactionManager"></property>
 	</bean>
 
 	<!-- 아래에서 생성한 userDao 를 이용하여 UserService를 제공한다 -->
-	<bean id="testUserService" class="springbook.user.service.UserServiceImpl">
+	<bean id="testUserService"
+		class="springbook.user.service.UserServiceImpl">
 		<property name="userDao" ref="myUserDao"></property>
-		<property name="userLevelUpgradePolicy" ref="testUserLevelUpgradePolicy"></property>
+		<property name="userLevelUpgradePolicy"
+			ref="testUserLevelUpgradePolicy"></property>
 		<property name="txManager" ref="transactionManager"></property>
 	</bean>
-	
+
+
+	<bean id="transactionAdvisor"
+		class="org.springframework.aop.support.DefaultPointcutAdvisor">
+		<property name="advice" ref="transactionAdvice"></property>
+		<property name="pointcut" ref="transactionPointcut"></property>
+	</bean>
+
+	<bean id="transactionPointcut"
+		class="org.springframework.aop.support.NameMatchMethodPointcut">
+		<property name="mappedName" value="upgrade*">
+		</property>
+	</bean>
+
+
+	<bean id="transactionAdvice"
+		class="springbook.user.service.TransactionAdvice">
+		<property name="transactionManager" ref="transactionManager">
+		</property>
+	</bean>
+
 	<bean id="transactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="myDataSource"></property>
 	</bean>
 
-	
+
+
 	<bean id="testUserLevelUpgradePolicy"
 		class="springbook.user.service.TestNormalUserLevelUpgradePolicy">
-		<property name="superPolicy" ref="normalUserLevelUpgradePolicy"></property>
+		<property name="superPolicy"
+			ref="normalUserLevelUpgradePolicy"></property>
 		<!-- id value for test -->
 		<property name="id" value="dartpaper"></property>
-		
+
 	</bean>
 
 	<bean id="normalUserLevelUpgradePolicy"

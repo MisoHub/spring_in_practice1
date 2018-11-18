@@ -15,6 +15,7 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.junit.runner.RunWith;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
@@ -46,10 +47,8 @@ public class UserServiceTest {
 	@Autowired 
 	DataSource dataSource;
 	
-	@Autowired
-	PlatformTransactionManager txManager;
-	
 	List<User> users;
+
 
 	@Before
 	public void setUp() {
@@ -110,29 +109,30 @@ public class UserServiceTest {
 	@DirtiesContext	 // 컨텍스트 무효화 애노테이션 
 	public void upgradeAllOrNothing() throws Throwable {
 
-		TxProxyFactoryBean txProxyFactoryBean = context.getBean(
-				"&userService", TxProxyFactoryBean.class);
 		
+		// upgradeAllOrNothing 메소드는 다른 테스트 다른 UserUpdatePolicy 를 사용함으로 
+		// 해당 policy로 설정된 userService를 별도의 target으로 지정한다.
+		// 그래서 직접 proxyFactoryBean을 가져오는 것이다. 
+		ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService",
+				ProxyFactoryBean.class);
 		txProxyFactoryBean.setTarget(testUserService);
 		UserService txUserService = (UserService)txProxyFactoryBean.getObject();
 		
-		
+		// 초기화 후 추가
 		userDao.deleteAll();
-		
 		for (User user : users)
 			userDao.add(user);
 
 		try {
 			txUserService.upgradeLevels();
 			fail("TestUserServiceException expected");
-		} catch (TestUserServiceException e) {
+		} catch (RuntimeException e) {
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		checkLevelUpgraded(users.get(1), false);
-
 	}
 	
 
@@ -145,5 +145,7 @@ public class UserServiceTest {
 			assertThat(userUpdate.getLevel(), Matchers.is(user.getLevel()));
 		}
 	}
+	
+
 
 }
