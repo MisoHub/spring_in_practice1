@@ -20,21 +20,8 @@
 		<property name="serviceInterface" value="springbook.user.service.UserService"></property> 
 		</bean> -->
 
-	<!-- spring 기반의 factory bean -->
-	<bean id="userService"
-		class="org.springframework.aop.framework.ProxyFactoryBean">
-		<property name="target" ref="userServiceImpl"></property>
-		<property name="interceptorNames">
-			<list>
-			<!-- 여러개의 누가기능Advisor을 추가할 수 있다.  -->
-				<value>transactionAdvisor</value>
-			</list>
-		</property>
-	</bean>
-
-
 	<!-- 아래에서 생성한 userDao 를 이용하여 UserService를 제공한다 -->
-	<bean id="userServiceImpl"
+	<bean id="userService"
 		class="springbook.user.service.UserServiceImpl">
 		<property name="userDao" ref="myUserDao"></property>
 		<property name="userLevelUpgradePolicy"
@@ -59,9 +46,10 @@
 	</bean>
 
 	<bean id="transactionPointcut"
-		class="org.springframework.aop.support.NameMatchMethodPointcut">
-		<property name="mappedName" value="upgrade*">
+		class="springbook.learningtest.dynamicproxy.NameMatchClassMethodPointcut">
+		<property name="mappedClassName" value="*ServiceImpl">
 		</property>
+		<property name="mappedName" value="upgrade*"></property>
 	</bean>
 
 
@@ -106,5 +94,9 @@
 		class="springbook.user.connection.JdbcContext">
 		<property name="dataSource" ref="myDataSource"></property>
 	</bean>
+
+
+	<bean
+		class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"></bean>
 
 </beans>

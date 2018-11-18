@@ -109,14 +109,9 @@ public class UserServiceTest {
 	@DirtiesContext	 // 컨텍스트 무효화 애노테이션 
 	public void upgradeAllOrNothing() throws Throwable {
 
-		
-		// upgradeAllOrNothing 메소드는 다른 테스트 다른 UserUpdatePolicy 를 사용함으로 
-		// 해당 policy로 설정된 userService를 별도의 target으로 지정한다.
-		// 그래서 직접 proxyFactoryBean을 가져오는 것이다. 
-		ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService",
-				ProxyFactoryBean.class);
-		txProxyFactoryBean.setTarget(testUserService);
-		UserService txUserService = (UserService)txProxyFactoryBean.getObject();
+		// 이제 자동으로 ProxyFactoryBean에서 DefaultAdvisorAutoProxyCreator 를통해
+		// 자동으로 Class에 맞는 Advisor를 적용해 준다. 따라서 별도로 ProxyFactoryBean을 생성하여 
+		// 타겟 설정할 필요가 없다. 
 		
 		// 초기화 후 추가
 		userDao.deleteAll();
@@ -124,7 +119,7 @@ public class UserServiceTest {
 			userDao.add(user);
 
 		try {
-			txUserService.upgradeLevels();
+			testUserService.upgradeLevels();
 			fail("TestUserServiceException expected");
 		} catch (RuntimeException e) {
 			
