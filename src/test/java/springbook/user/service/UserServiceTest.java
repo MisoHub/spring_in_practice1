@@ -4,6 +4,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.hamcrest.Matchers;
+
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -33,8 +35,8 @@ import springbook.user.dao.UserDao;
 public class UserServiceTest {
 
 	@Autowired
-	ApplicationContext context; 
-	
+	ApplicationContext context;
+
 	@Autowired
 	UserDao userDao;
 
@@ -43,12 +45,11 @@ public class UserServiceTest {
 
 	@Autowired
 	UserService testUserService;
-	
-	@Autowired 
-	DataSource dataSource;
-	
-	List<User> users;
 
+	@Autowired
+	DataSource dataSource;
+
+	List<User> users;
 
 	@Before
 	public void setUp() {
@@ -106,13 +107,13 @@ public class UserServiceTest {
 	}
 
 	@Test
-	@DirtiesContext	 // 컨텍스트 무효화 애노테이션 
+	@DirtiesContext // 컨텍스트 무효화 애노테이션
 	public void upgradeAllOrNothing() throws Throwable {
 
 		// 이제 자동으로 ProxyFactoryBean에서 DefaultAdvisorAutoProxyCreator 를통해
-		// 자동으로 Class에 맞는 Advisor를 적용해 준다. 따라서 별도로 ProxyFactoryBean을 생성하여 
-		// 타겟 설정할 필요가 없다. 
-		
+		// 자동으로 Class에 맞는 Advisor를 적용해 준다. 따라서 별도로 ProxyFactoryBean을 생성하여
+		// 타겟 설정할 필요가 없다.
+
 		// 초기화 후 추가
 		userDao.deleteAll();
 		for (User user : users)
@@ -122,14 +123,19 @@ public class UserServiceTest {
 			testUserService.upgradeLevels();
 			fail("TestUserServiceException expected");
 		} catch (RuntimeException e) {
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		checkLevelUpgraded(users.get(1), false);
 	}
-	
+
+	@Test
+	public void advisorAutoProxyCreator() {
+		testUserService = context.getBean("testUserService", UserServiceImpl.class);
+		assertThat(userService,is(java.lang.reflect.Proxy.class));
+	}
 
 	private void checkLevelUpgraded(User user, boolean upgraded) {
 
@@ -140,7 +146,5 @@ public class UserServiceTest {
 			assertThat(userUpdate.getLevel(), Matchers.is(user.getLevel()));
 		}
 	}
-	
-
 
 }

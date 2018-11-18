@@ -110,6 +110,7 @@ public class DynamicProxyTest {
 		
 	}
 
+	
 	private void checkAdviced(Object target, Pointcut pointcut, boolean adviced) {
 		
 		// 명시적으로 spring proxy factory를 생성 함 
